@@ -27,4 +27,4 @@ Route
   .post('/farms/:id/image', 'FarmController.upload')
   .validator('FarmImage')
 
-Route.get('/farms/:id/image', 'FarmController.show')
+Route.get('/farms/:id/image', 'FarmController.download')

@@ -65,7 +65,7 @@ class FarmController {
     return farm
   }
 
-  async show({ params, response }) {
+  async download({ params, response }) {
     const farm = await Farm.findOrFail(params.id)
     return response.download(Helpers.tmpPath(`uploads/${farm.image}`))
   }
