@@ -16,6 +16,15 @@
 /** @type {typeof import('@adonisjs/framework/src/Route/Manager')} */
 const Route = use('Route')
 
-Route.get('/', () => {
-  return { greeting: 'Hello world in JSON' }
-})
+Route
+  .resource('farms', 'FarmController')
+  .apiOnly()
+  .validator(new Map([
+    [['farms.store'], ['Farm']]
+  ]))
+
+Route
+  .post('/farms/:id/image', 'FarmController.upload')
+  .validator('FarmImage')
+
+Route.get('/farms/:id/image', 'FarmController.show')
