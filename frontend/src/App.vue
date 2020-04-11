@@ -35,8 +35,20 @@
           </v-col>
           <v-col cols="7">
             <div class="d-flex flex-wrap">
+              <div
+                v-if="loading"
+                class="d-flex justify-center align-center"
+                style="width: 100%; height: calc(100vh - 100px);"
+              >
+                <v-progress-circular
+                  :size="50"
+                  width="5"
+                  color="primary"
+                  indeterminate
+                />
+              </div>
               <v-alert
-                v-if="!farms.length"
+                v-else-if="!farms.length"
                 border="left"
                 outlined
                 block
@@ -50,78 +62,80 @@
                   ><b>Click here to add.</b></a
                 >
               </v-alert>
-              <v-card
-                v-for="(farm, index) in farms"
-                :key="index"
-                outlined
-                class="font-weight-medium mb-4 mx-2"
-                width="250px"
-              >
-                <v-fab-transition>
-                  <div
-                    v-show="showActions"
-                    style="position: absolute; top: -10px; right: -10px; z-index: 100;"
-                  >
-                    <v-btn
-                      color="warning"
-                      fab
-                      x-small
-                      class="mr-2"
-                      @click="
-                        showDialog({ dialog: 'form', action: 'edit', farm })
-                      "
-                    >
-                      <v-icon>edit</v-icon>
-                    </v-btn>
-                    <v-btn
-                      color="error"
-                      fab
-                      x-small
-                      @click="
-                        showDialog({ dialog: 'form', action: 'delete', farm })
-                      "
-                    >
-                      <v-icon>delete</v-icon>
-                    </v-btn>
-                  </div>
-                </v-fab-transition>
-                <v-skeleton-loader
-                  v-if="farm.imageLoading"
-                  type="image"
-                  max-height="170px"
-                />
-                <v-img v-else :src="farm.imageLoaded" height="170px" />
-                <v-card-text
-                  class="pb-2"
-                  @click="showDialog({ dialog: 'info', farm })"
-                  style="cursor: pointer;"
+              <template v-else>
+                <v-card
+                  v-for="(farm, index) in farms"
+                  :key="index"
+                  outlined
+                  class="font-weight-medium mb-4 mx-2"
+                  width="250px"
                 >
                   <v-fab-transition>
                     <div
                       v-show="showActions"
-                      style="position: absolute; top: 180px; right: 10px; z-index: 1;"
+                      style="position: absolute; top: -10px; right: -10px; z-index: 100;"
                     >
-                      <v-icon>info_outline</v-icon>
+                      <v-btn
+                        color="warning"
+                        fab
+                        x-small
+                        class="mr-2"
+                        @click="
+                          showDialog({ dialog: 'form', action: 'edit', farm })
+                        "
+                      >
+                        <v-icon>edit</v-icon>
+                      </v-btn>
+                      <v-btn
+                        color="error"
+                        fab
+                        x-small
+                        @click="
+                          showDialog({ dialog: 'form', action: 'delete', farm })
+                        "
+                      >
+                        <v-icon>delete</v-icon>
+                      </v-btn>
                     </div>
                   </v-fab-transition>
-                  <h3 class="black--text mb-1">
-                    {{ farm.name }}
-                  </h3>
-                  <p class="mb-2">
-                    <small class="font-weight-light text--secondary">
-                      {{ labels["owner"] }}
-                    </small>
-                    {{ farm.owner }}
-                  </p>
-                  <small
-                    class="d-inline-flex align-center text--secondary mb-0"
-                    style="font-size: .8rem"
+                  <v-skeleton-loader
+                    v-if="farm.imageLoading"
+                    type="image"
+                    max-height="170px"
+                  />
+                  <v-img v-else :src="farm.imageLoaded" height="170px" />
+                  <v-card-text
+                    class="pb-2"
+                    @click="showDialog({ dialog: 'info', farm })"
+                    style="cursor: pointer;"
                   >
-                    <v-icon small>room</v-icon>
-                    +{{ farm.lat }} -{{ farm.long }}
-                  </small>
-                </v-card-text>
-              </v-card>
+                    <v-fab-transition>
+                      <div
+                        v-show="showActions"
+                        style="position: absolute; top: 180px; right: 10px; z-index: 1;"
+                      >
+                        <v-icon>info_outline</v-icon>
+                      </div>
+                    </v-fab-transition>
+                    <h3 class="black--text mb-1">
+                      {{ farm.name }}
+                    </h3>
+                    <p class="mb-2">
+                      <small class="font-weight-light text--secondary">
+                        {{ labels["owner"] }}
+                      </small>
+                      {{ farm.owner }}
+                    </p>
+                    <small
+                      class="d-inline-flex align-center text--secondary mb-0"
+                      style="font-size: .8rem"
+                    >
+                      <v-icon small>room</v-icon>
+                      +{{ farm.lat }} -{{ farm.long }}
+                    </small>
+                  </v-card-text>
+                </v-card>
+              </template>
             </div>
           </v-col>
         </v-row>
@@ -319,6 +333,13 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <v-snackbar v-model="snackbar.show" :timeout="snackbar.timeout" top>
+      {{ snackbar.text }}
+      <v-btn color="blue" text @click="snackbar.show = false">
+        Close
+      </v-btn>
+    </v-snackbar>
   </v-app>
 </template>
 
@@ -333,6 +354,11 @@ export default {
     dialogForm: false,
     dialogFormAction: null,
     dialogFormDeleting: false,
+    snackbar: {
+      show: false,
+      timeout: 3000,
+      text: null
+    },
     loading: false,
     farms: [],
     selectedFarm: {
@@ -421,6 +447,11 @@ export default {
       this.dialogForm = dialog === "form";
     },
 
+    showSnackbar({ text }) {
+      this.snackbar.show = true;
+      this.snackbar.text = text;
+    },
+
     onDelete() {
       this.dialogDelete = false;
     },
@@ -473,7 +504,9 @@ export default {
       } catch (error) {
         console.log("error", error);
       } finally {
-        this.loading = true;
+        setTimeout(() => {
+          this.loading = false;
+        }, 500);
         this.farms.forEach(i => {
           if (!i.image) return;
           this.apiShowImage({ id: i.id });
@@ -504,6 +537,7 @@ export default {
         this.form.loading = true;
         const { data } = await ServiceApi.store({ ...this.selectedFarm });
         console.log("store", JSON.stringify(data));
+        this.showSnackbar({ text: "Success! Farm added" });
       } catch (error) {
         console.log("error", error);
       } finally {
@@ -517,6 +551,7 @@ export default {
         this.form.loading = true;
         const { data } = await ServiceApi.update({ ...this.selectedFarm });
         console.log("update", JSON.stringify(data));
+        this.showSnackbar({ text: "Success! Farm saved" });
       } catch (error) {
         console.log("error", error);
       } finally {
@@ -536,6 +571,7 @@ export default {
           formData
         });
         console.log("upload", JSON.stringify(data));
+        this.showSnackbar({ text: "Success! Image uploaded" });
       } catch (error) {
         console.log("error", error);
       } finally {
@@ -548,6 +584,7 @@ export default {
         this.form.loading = true;
         const { data } = await ServiceApi.destroy({ id: this.selectedFarm.id });
         console.log("destroy", JSON.stringify(data));
+        this.showSnackbar({ text: "Success! Farm deleted" });
       } catch (error) {
         console.log("error", error);
       } finally {
