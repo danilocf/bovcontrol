@@ -38,7 +38,7 @@
                       fab
                       x-small
                       class="mr-2"
-                      @click="showDialogFormByAction('edit')"
+                      @click="showDialogForm('edit', farm)"
                     >
                       <v-icon>edit</v-icon>
                     </v-btn>
@@ -46,7 +46,7 @@
                       color="error"
                       fab
                       x-small
-                      @click="dialogDelete = true"
+                      @click="showDialogDelete(farm)"
                     >
                       <v-icon>delete</v-icon>
                     </v-btn>
@@ -56,7 +56,7 @@
                 <!-- FIXME: -->
                 <v-card-text
                   class="pb-2"
-                  @click="showInfoByFarm(farm)"
+                  @click="showDialogInfo(farm)"
                   style="cursor: pointer;"
                 >
                   <v-fab-transition>
@@ -72,7 +72,7 @@
                   </h3>
                   <p class="mb-2">
                     <small class="font-weight-light text--secondary">
-                      Owner
+                      {{ labels["owner"] }}
                     </small>
                     {{ farm.owner }}
                   </p>
@@ -118,7 +118,7 @@
             small
             width="100"
             color="warning white--text mb-2"
-            @click="showDialogFormByAction('edit')"
+            @click="showDialogForm('edit', selectedFarm)"
             >Edit<v-icon right color="white">edit</v-icon></v-btn
           ><br />
           <v-btn
@@ -126,7 +126,7 @@
             small
             width="100"
             color="error white--text"
-            @click="dialogDelete = true"
+            @click="showDialogDelete(selectedFarm)"
             >Delete<v-icon right color="white">delete</v-icon></v-btn
           >
         </div>
@@ -159,7 +159,7 @@
         fixed
         right
         large
-        @click="showDialogFormByAction('add')"
+        @click="showDialogForm('add')"
       >
         <v-icon>add</v-icon>
       </v-btn>
@@ -170,11 +170,54 @@
         <v-card-title>
           {{ dialogFormAction === "add" ? "Add new Farm" : "Edit Farm" }}
         </v-card-title>
-        <v-container>todo...</v-container>
+        <v-container>
+          <v-form ref="form" v-model="form.valid" lazy-validation>
+            <v-text-field
+              v-model="form.name"
+              :rules="form.basicRule"
+              :label="labels['name']"
+              :disabled="form.loading"
+              required
+              dense
+            />
+            <v-text-field
+              v-model="form.owner"
+              :rules="form.basicRule"
+              :label="labels['owner']"
+              :disabled="form.loading"
+              required
+              dense
+            />
+            <v-text-field
+              v-model="form.address"
+              :rules="form.basicRule"
+              :label="labels['address']"
+              :disabled="form.loading"
+              required
+              dense
+            />
+            <v-text-field
+              v-model="form.lat"
+              :rules="form.basicRule"
+              :label="labels['lat']"
+              :disabled="form.loading"
+              required
+              dense
+            />
+            <v-text-field
+              v-model="form.long"
+              :rules="form.basicRule"
+              :label="labels['long']"
+              :disabled="form.loading"
+              required
+              dense
+            />
+          </v-form>
+        </v-container>
         <v-card-actions>
           <v-spacer />
           <v-btn text @click="dialogForm = false">Cancel</v-btn>
-          <v-btn color="primary" depressed @click="dialogForm = false">{{
+          <v-btn color="primary" depressed @click="onSubmit">{{
             dialogFormAction === "add" ? "Add Farm" : "Save"
           }}</v-btn>
         </v-card-actions>
@@ -189,9 +232,9 @@
         <v-container>todo...</v-container>
         <v-card-actions>
           <v-spacer />
-          <v-btn text color="primary" @click="dialogDelete = false"
-            >Cancel</v-btn
-          >
+          <v-btn text color="primary" @click="dialogDelete = false">
+            Cancel
+          </v-btn>
           <v-btn outlined color="error" @click="onDelete">
             {{ dialogDeleteConfirming ? "Click again to confirm" : "Delete" }}
           </v-btn>
@@ -208,59 +251,10 @@ export default {
     menu: "View",
     dialogInfo: false,
     dialogForm: false,
-    dialogFormAction: null, // add, edit
+    dialogFormAction: null,
     dialogDelete: false,
     dialogDeleteConfirming: false,
-    selectedFarm: {
-      name: null,
-      owner: null,
-      address: null,
-      lat: null,
-      long: null,
-      createdAt: null,
-      updatedAt: null
-    },
     farms: [
-      {
-        name: "Freire's Farm",
-        owner: "Danilo Freire",
-        address:
-          "Rua Doutor Tertuliano Delphim Júnior, São José dos Campos - SP",
-        lat: "40.689060",
-        long: "74.044636",
-        createdAt: "04-10-2020 3:56 PM",
-        updatedAt: "04-10-2020 3:56 PM"
-      },
-      {
-        name: "Freire's Farm",
-        owner: "Danilo Freire",
-        address:
-          "Rua Doutor Tertuliano Delphim Júnior, São José dos Campos - SP",
-        lat: "40.689060",
-        long: "74.044636",
-        createdAt: "04-10-2020 3:56 PM",
-        updatedAt: "04-10-2020 3:56 PM"
-      },
-      {
-        name: "Freire's Farm",
-        owner: "Danilo Freire",
-        address:
-          "Rua Doutor Tertuliano Delphim Júnior, São José dos Campos - SP",
-        lat: "40.689060",
-        long: "74.044636",
-        createdAt: "04-10-2020 3:56 PM",
-        updatedAt: "04-10-2020 3:56 PM"
-      },
-      {
-        name: "Freire's Farm",
-        owner: "Danilo Freire",
-        address:
-          "Rua Doutor Tertuliano Delphim Júnior, São José dos Campos - SP",
-        lat: "40.689060",
-        long: "74.044636",
-        createdAt: "04-10-2020 3:56 PM",
-        updatedAt: "04-10-2020 3:56 PM"
-      },
       {
         name: "Freire's Farm",
         owner: "Danilo Freire",
@@ -272,12 +266,36 @@ export default {
         updatedAt: "04-10-2020 3:56 PM"
       }
     ],
+    selectedFarm: {
+      name: null,
+      owner: null,
+      address: null,
+      lat: null,
+      long: null,
+      createdAt: null,
+      updatedAt: null
+    },
+    form: {
+      name: null,
+      owner: null,
+      address: null,
+      lat: null,
+      long: null,
+      loading: false,
+      valid: false,
+      basicRule: [
+        v => !!v || "This field is required",
+        v =>
+          (v && v.length <= 240) ||
+          "This field must be less than 240 characters"
+      ]
+    },
     labels: {
       name: "Name",
       owner: "Owner",
       address: "Address",
-      lat: "Lat",
-      long: "Long",
+      lat: "Latitude",
+      long: "Longitude",
       createdAt: "Created at",
       updatedAt: "Updated at"
     }
@@ -285,6 +303,9 @@ export default {
   watch: {
     dialogDelete() {
       this.dialogDeleteConfirming = false;
+    },
+    dialogForm() {
+      this.resetForm();
     }
   },
   computed: {
@@ -293,17 +314,31 @@ export default {
     }
   },
   mounted() {
-    // 
+    //
   },
   methods: {
-    showInfoByFarm(farm) {
+    showDialogInfo(farm) {
       this.selectedFarm = farm;
       this.dialogInfo = true;
     },
 
-    showDialogFormByAction(action) {
+    showDialogDelete(farm) {
+      this.selectedFarm = farm;
+      this.dialogDelete = true;
+    },
+
+    showDialogForm(action, farm) {
       this.dialogForm = true;
       this.dialogFormAction = action;
+      this.$nextTick(() => {
+        if (farm) {
+          this.form.name = farm.name;
+          this.form.owner = farm.owner;
+          this.form.address = farm.address;
+          this.form.lat = farm.lat;
+          this.form.long = farm.long;
+        }
+      });
     },
 
     onDelete() {
@@ -314,9 +349,21 @@ export default {
       this.dialogDelete = false;
     },
 
-    onAdd() {},
+    onSubmit() {
+      const valid = this.$refs.form.validate();
+      if (valid) {
+        this.dialogForm = false;
+      }
+    },
 
-    onEdit() {}
+    resetForm() {
+      this.form.name = null;
+      this.form.owner = null;
+      this.form.address = null;
+      this.form.lat = null;
+      this.form.long = null;
+      this.$refs.form && this.$refs.form.resetValidation();
+    }
   }
 };
 </script>
