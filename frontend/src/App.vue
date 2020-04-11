@@ -199,7 +199,11 @@
               accept="image/*"
               show-size
               label="Image"
-              :rules="form.imageRule"
+              :rules="
+                dialogFormAction === 'edit'
+                  ? form.editImageRule
+                  : form.imageRule
+              "
             ></v-file-input>
             <v-text-field
               v-model="selectedFarm.name"
@@ -298,6 +302,9 @@ export default {
         v =>
           (v && v.length <= 240) ||
           "This field must be less than 240 characters"
+      ],
+      editImageRule: [
+        v => !v || v.size < 2000000 || "Image size should be less than 2 MB!"
       ],
       imageRule: [
         v => !!v || "This field is required",
