@@ -404,7 +404,7 @@ export default {
     map: {
       url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
       zoom: 3,
-      center: [-15.77843, -47.92866], // BR
+      center: [10.223945, -80.442116],
       markers: []
     }
   }),
@@ -460,10 +460,8 @@ export default {
       const valid = this.$refs.form.validate();
       if (valid) {
         if (this.dialogFormAction === "add") {
-          await this.apiUpload();
           await this.apiStore();
         } else if (this.dialogFormAction === "edit") {
-          await this.apiUpload();
           await this.apiUpdate();
         } else if (this.dialogFormAction === "delete") {
           if (!this.dialogFormDeleting) {
@@ -493,6 +491,7 @@ export default {
     async apiIndex() {
       try {
         this.loading = true;
+        this.map.markers = [];
         const { data } = await ServiceApi.index();
         this.farms = data.map(i => {
           i.imageLoaded = "";
@@ -538,6 +537,7 @@ export default {
         const { data } = await ServiceApi.store({ ...this.selectedFarm });
         console.log("store", JSON.stringify(data));
         this.showSnackbar({ text: "Success! Farm added" });
+        await this.apiUpload(data.id);
       } catch (error) {
         console.log("error", error);
       } finally {
@@ -552,6 +552,7 @@ export default {
         const { data } = await ServiceApi.update({ ...this.selectedFarm });
         console.log("update", JSON.stringify(data));
         this.showSnackbar({ text: "Success! Farm saved" });
+        await this.apiUpload(data.id);
       } catch (error) {
         console.log("error", error);
       } finally {
@@ -560,14 +561,14 @@ export default {
       }
     },
 
-    async apiUpload() {
+    async apiUpload(id) {
       if (!this.form.image) return;
       try {
         this.form.loadingImage = true;
         const formData = new FormData();
         formData.append("image", this.form.image);
         const { data } = await ServiceApi.upload({
-          id: this.selectedFarm.id,
+          id,
           formData
         });
         console.log("upload", JSON.stringify(data));

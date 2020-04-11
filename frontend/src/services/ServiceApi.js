@@ -103,7 +103,7 @@ export default {
       url: `/farms/${id}/image`,
       apiMethod: "post",
       apiPayload: formData,
-      mockResponse: Mock.destroy
+      mockResponse: Mock.upload
     });
   },
 
