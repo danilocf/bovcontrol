@@ -248,6 +248,7 @@
           <v-btn
             :outlined="dialogFormAction === 'delete'"
             :color="dialogFormAction === 'delete' ? 'error' : 'primary'"
+            :loading="form.loading"
             depressed
             @click="onSubmit"
           >
@@ -264,6 +265,8 @@
 </template>
 
 <script>
+import ServiceApi from "@/services/ServiceApi";
+
 export default {
   name: "App",
   data: () => ({
@@ -362,7 +365,7 @@ export default {
       this.dialogDelete = false;
     },
 
-    onSubmit() {
+    async onSubmit() {
       const valid = this.$refs.form.validate();
       if (valid) {
         if (this.dialogFormAction === "delete") {
@@ -371,11 +374,23 @@ export default {
             return;
           }
         }
+        if (this.dialogFormAction === "add") {
+          try {
+            this.form.loading = true
+            const { data } = await ServiceApi.store({ ...this.selectedFarm });
+            console.log("data", JSON.stringify(data));
+          } catch (error) {
+            console.log("error", error);
+          } finally {
+            this.form.loading = true
+          }
+        }
         this.dialogForm = false;
       }
     },
 
     resetForm() {
+      this.form.image = null;
       this.selectedFarm.name = null;
       this.selectedFarm.owner = null;
       this.selectedFarm.address = null;
