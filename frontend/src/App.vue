@@ -1,9 +1,8 @@
 <template>
   <v-app>
-    <!-- FIXME: -->
     <img
       src="@/assets/logo.svg"
-      style="position: fixed; top: 0; left: 14px; z-index: 1000;"
+      style="position: fixed; top: 0; left: 44px; z-index: 1000;"
     />
 
     <v-bottom-navigation v-model="menu" app dark shift mandatory>
@@ -20,13 +19,19 @@
     <v-content>
       <v-container fluid class="py-0">
         <v-row>
-          <v-col cols="5">
-            <!-- :style="{
-              backgroundImage: `url(${mapImage})`,
-              backgroundPosition: 'center',
-              minHeight: 'calc(100vh - 56px)'
-            }" -->
-            <!-- <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d467692.0487834922!2d-46.875491724069676!3d-23.681531472962106!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94ce448183a461d1%3A0x9ba94b08ff335bae!2sS%C3%A3o%20Paulo%2C%20State%20of%20S%C3%A3o%20Paulo!5e0!3m2!1sen!2sbr!4v1586616889033!5m2!1sen!2sbr" width="100%" height="600" frameborder="0" style="border:0;" allowfullscreen="" aria-hidden="false" tabindex="0"></iframe> -->
+          <v-col cols="5" class="pa-0">
+            <l-map
+              style="height: calc(100vh - 56px); z-index: 0;"
+              :zoom="map.zoom"
+              :center="map.center"
+            >
+              <l-tile-layer :url="map.url" />
+              <l-marker
+                v-for="(mark, index) in map.markers"
+                :key="index"
+                :lat-lng="mark"
+              />
+            </l-map>
           </v-col>
           <v-col cols="7">
             <div class="d-flex flex-wrap">
@@ -52,7 +57,6 @@
                 class="font-weight-medium mb-4 mx-2"
                 width="250px"
               >
-                <!-- FIXME: -->
                 <v-fab-transition>
                   <div
                     v-show="showActions"
@@ -87,7 +91,6 @@
                   max-height="170px"
                 />
                 <v-img v-else :src="farm.imageLoaded" height="170px" />
-                <!-- FIXME: -->
                 <v-card-text
                   class="pb-2"
                   @click="showDialog({ dialog: 'info', farm })"
@@ -110,7 +113,6 @@
                     </small>
                     {{ farm.owner }}
                   </p>
-                  <!-- FIXME: -->
                   <small
                     class="d-inline-flex align-center text--secondary mb-0"
                     style="font-size: .8rem"
@@ -372,6 +374,12 @@ export default {
       long: "Longitude",
       created_at: "Created at",
       updated_at: "Updated at"
+    },
+    map: {
+      url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+      zoom: 3,
+      center: [-15.77843, -47.92866], // BR
+      markers: []
     }
   }),
   watch: {
@@ -458,6 +466,7 @@ export default {
         this.farms = data.map(i => {
           i.imageLoaded = "";
           i.imageLoading = true;
+          this.map.markers.push([i.lat, i.long]);
           return i;
         });
         console.log("index", JSON.stringify(data));
