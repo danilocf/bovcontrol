@@ -3,7 +3,7 @@
     <!-- FIXME: -->
     <img src="@/assets/logo.svg" style="position: fixed; top: 0; left: 14px" />
 
-    <v-bottom-navigation v-model="bottomNav" app dark shift mandatory>
+    <v-bottom-navigation v-model="menu" app dark shift mandatory>
       <v-btn value="View">
         <span>View</span>
         <v-icon>visibility</v-icon>
@@ -30,7 +30,7 @@
                 <!-- FIXME: -->
                 <v-fab-transition>
                   <div
-                    v-show="bottomNav === 'Settings'"
+                    v-show="showActions"
                     style="position: absolute; top: -10px; right: -10px; z-index: 1;"
                   >
                     <v-btn
@@ -38,11 +38,16 @@
                       fab
                       x-small
                       class="mr-2"
-                      @click.prevent="alert('edit')"
+                      @click="showDialogFormByAction('edit')"
                     >
                       <v-icon>edit</v-icon>
                     </v-btn>
-                    <v-btn color="error" fab x-small>
+                    <v-btn
+                      color="error"
+                      fab
+                      x-small
+                      @click="dialogDelete = true"
+                    >
                       <v-icon>delete</v-icon>
                     </v-btn>
                   </div>
@@ -51,12 +56,12 @@
                 <!-- FIXME: -->
                 <v-card-text
                   class="pb-2"
-                  @click="sheet = true"
+                  @click="showInfoByFarm(farm)"
                   style="cursor: pointer;"
                 >
                   <v-fab-transition>
                     <div
-                      v-if="bottomNav === 'Settings'"
+                      v-if="showActions"
                       style="position: absolute; top: 180px; right: 10px; z-index: 1;"
                     >
                       <v-icon>info_outline</v-icon>
@@ -66,9 +71,9 @@
                     {{ farm.name }}
                   </h3>
                   <p class="mb-2">
-                    <small class="font-weight-light text--secondary"
-                      >Owner</small
-                    >
+                    <small class="font-weight-light text--secondary">
+                      Owner
+                    </small>
                     {{ farm.owner }}
                   </p>
                   <!-- FIXME: -->
@@ -87,11 +92,10 @@
       </v-container>
     </v-content>
 
-    <v-bottom-sheet v-model="sheet">
+    <v-bottom-sheet v-model="dialogInfo">
       <v-sheet height="220" style="position: relative;">
         <v-icon
           size="50"
-          @click="sheet = !sheet"
           style="position: absolute; top: 10px; left: 10px; opacity: .5;"
           >info_outline
         </v-icon>
@@ -101,18 +105,28 @@
             small
             width="100"
             color="primary white--text mb-2"
-            @click="sheet = !sheet"
+            @click="dialogInfo = false"
             >Close<v-icon right color="white">close</v-icon></v-btn
           >
         </div>
         <div
-          v-show="bottomNav === 'Settings'"
+          v-show="showActions"
           style="position: absolute; bottom: 10px; right: 10px;"
         >
-          <v-btn depressed small width="100" color="warning white--text mb-2"
+          <v-btn
+            depressed
+            small
+            width="100"
+            color="warning white--text mb-2"
+            @click="showDialogFormByAction('edit')"
             >Edit<v-icon right color="white">edit</v-icon></v-btn
           ><br />
-          <v-btn depressed small width="100" color="error white--text"
+          <v-btn
+            depressed
+            small
+            width="100"
+            color="error white--text"
+            @click="dialogDelete = true"
             >Delete<v-icon right color="white">delete</v-icon></v-btn
           >
         </div>
@@ -120,59 +134,13 @@
           <v-simple-table dense>
             <template v-slot:default>
               <tbody>
-                <tr>
+                <tr v-for="(val, key, index) in selectedFarm" :key="index">
                   <td>
-                    <small class="font-weight-light text--secondary"
-                      >Name</small
-                    >
+                    <small class="font-weight-light text--secondary">
+                      {{ labels[key] }}
+                    </small>
                   </td>
-                  <td>{{ farms[0].name }}</td>
-                </tr>
-                <tr>
-                  <td>
-                    <small class="font-weight-light text--secondary"
-                      >Owner</small
-                    >
-                  </td>
-                  <td>{{ farms[0].owner }}</td>
-                </tr>
-                <tr>
-                  <td>
-                    <small class="font-weight-light text--secondary"
-                      >Address</small
-                    >
-                  </td>
-                  <td>{{ farms[0].address }}</td>
-                </tr>
-                <tr>
-                  <td>
-                    <small class="font-weight-light text--secondary">Lat</small>
-                  </td>
-                  <td>{{ farms[0].lat }}</td>
-                </tr>
-                <tr>
-                  <td>
-                    <small class="font-weight-light text--secondary"
-                      >Long</small
-                    >
-                  </td>
-                  <td>{{ farms[0].long }}</td>
-                </tr>
-                <tr>
-                  <td>
-                    <small class="font-weight-light text--secondary"
-                      >Created at</small
-                    >
-                  </td>
-                  <td>{{ farms[0].createdAt }}</td>
-                </tr>
-                <tr>
-                  <td>
-                    <small class="font-weight-light text--secondary"
-                      >Updated at</small
-                    >
-                  </td>
-                  <td>{{ farms[0].updatedAt }}</td>
+                  <td>{{ val }}</td>
                 </tr>
               </tbody>
             </template>
@@ -183,7 +151,7 @@
 
     <v-fab-transition>
       <v-btn
-        v-show="bottomNav === 'Settings'"
+        v-show="showActions"
         bottom
         color="primary"
         dark
@@ -191,22 +159,42 @@
         fixed
         right
         large
-        @click="dialog = !dialog"
+        @click="showDialogFormByAction('add')"
       >
         <v-icon>add</v-icon>
       </v-btn>
     </v-fab-transition>
 
-    <v-dialog v-model="dialog" width="400px">
+    <v-dialog v-model="dialogForm" width="400px">
       <v-card>
         <v-card-title>
-          Add new farm
+          {{ dialogFormAction === "add" ? "Add new Farm" : "Edit Farm" }}
         </v-card-title>
-        <v-container> </v-container>
+        <v-container>todo...</v-container>
         <v-card-actions>
           <v-spacer />
-          <v-btn text color="primary" @click="dialog = false">Cancel</v-btn>
-          <v-btn text @click="dialog = false">Save</v-btn>
+          <v-btn text @click="dialogForm = false">Cancel</v-btn>
+          <v-btn color="primary" depressed @click="dialogForm = false">{{
+            dialogFormAction === "add" ? "Add Farm" : "Save"
+          }}</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <v-dialog v-model="dialogDelete" width="400px">
+      <v-card>
+        <v-card-title>
+          Delete farm
+        </v-card-title>
+        <v-container>todo...</v-container>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn text color="primary" @click="dialogDelete = false"
+            >Cancel</v-btn
+          >
+          <v-btn outlined color="error" @click="onDelete">
+            {{ dialogDeleteConfirming ? "Click again to confirm" : "Delete" }}
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -217,9 +205,21 @@
 export default {
   name: "App",
   data: () => ({
-    bottomNav: "view",
-    sheet: false,
-    dialog: false,
+    menu: "View",
+    dialogInfo: false,
+    dialogForm: false,
+    dialogFormAction: null, // add, edit
+    dialogDelete: false,
+    dialogDeleteConfirming: false,
+    selectedFarm: {
+      name: null,
+      owner: null,
+      address: null,
+      lat: null,
+      long: null,
+      createdAt: null,
+      updatedAt: null
+    },
     farms: [
       {
         name: "Freire's Farm",
@@ -229,8 +229,7 @@ export default {
         lat: "40.689060",
         long: "74.044636",
         createdAt: "04-10-2020 3:56 PM",
-        updatedAt: "04-10-2020 3:56 PM",
-        showTime: false
+        updatedAt: "04-10-2020 3:56 PM"
       },
       {
         name: "Freire's Farm",
@@ -240,8 +239,7 @@ export default {
         lat: "40.689060",
         long: "74.044636",
         createdAt: "04-10-2020 3:56 PM",
-        updatedAt: "04-10-2020 3:56 PM",
-        showTime: false
+        updatedAt: "04-10-2020 3:56 PM"
       },
       {
         name: "Freire's Farm",
@@ -251,8 +249,7 @@ export default {
         lat: "40.689060",
         long: "74.044636",
         createdAt: "04-10-2020 3:56 PM",
-        updatedAt: "04-10-2020 3:56 PM",
-        showTime: false
+        updatedAt: "04-10-2020 3:56 PM"
       },
       {
         name: "Freire's Farm",
@@ -262,8 +259,7 @@ export default {
         lat: "40.689060",
         long: "74.044636",
         createdAt: "04-10-2020 3:56 PM",
-        updatedAt: "04-10-2020 3:56 PM",
-        showTime: false
+        updatedAt: "04-10-2020 3:56 PM"
       },
       {
         name: "Freire's Farm",
@@ -273,16 +269,54 @@ export default {
         lat: "40.689060",
         long: "74.044636",
         createdAt: "04-10-2020 3:56 PM",
-        updatedAt: "04-10-2020 3:56 PM",
-        showTime: false
+        updatedAt: "04-10-2020 3:56 PM"
       }
-    ]
+    ],
+    labels: {
+      name: "Name",
+      owner: "Owner",
+      address: "Address",
+      lat: "Lat",
+      long: "Long",
+      createdAt: "Created at",
+      updatedAt: "Updated at"
+    }
   }),
+  watch: {
+    dialogDelete() {
+      this.dialogDeleteConfirming = false;
+    }
+  },
+  computed: {
+    showActions() {
+      return this.menu === "Settings";
+    }
+  },
   mounted() {
-    // setInterval(() => {
-    //   this.farms.push(Object.assign({}, this.farms[0]))
-    //   this.$vuetify.goTo(9999)
-    // }, 1000)
+    // 
+  },
+  methods: {
+    showInfoByFarm(farm) {
+      this.selectedFarm = farm;
+      this.dialogInfo = true;
+    },
+
+    showDialogFormByAction(action) {
+      this.dialogForm = true;
+      this.dialogFormAction = action;
+    },
+
+    onDelete() {
+      if (!this.dialogDeleteConfirming) {
+        this.dialogDeleteConfirming = true;
+        return;
+      }
+      this.dialogDelete = false;
+    },
+
+    onAdd() {},
+
+    onEdit() {}
   }
 };
 </script>
