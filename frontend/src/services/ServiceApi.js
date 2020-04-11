@@ -2,6 +2,7 @@ import Api from "@/services/Api";
 import MockAdapter from "axios-mock-adapter";
 import Mock from "@/services/ServiceApi.mock";
 const options = { baseURL: process.env.VUE_APP_API_URL };
+const NormalApi = Api(options);
 
 const makeRequest = ({
   url = null,
@@ -9,7 +10,6 @@ const makeRequest = ({
   apiMethod = null,
   apiPayload = null
 }) => {
-  const NormalApi = Api(options);
   const MockApi = Api(options);
   const mock = new MockAdapter(MockApi, { delayResponse: 1300 });
   const useMock = process.env.VUE_APP_MOCK === "true";
@@ -108,11 +108,9 @@ export default {
   },
 
   showImage({ id = null }) {
-    return makeRequest({
-      url: `/farms/${id}/image`,
-      apiMethod: "get",
-      apiPayload: {},
-      mockResponse: Mock.destroy
+    return NormalApi.get(`/farms/${id}/image`, {
+      responseType: "blob",
+      timeout: 30000
     });
   }
 };

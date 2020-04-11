@@ -56,7 +56,12 @@
                     </v-btn>
                   </div>
                 </v-fab-transition>
-                <v-img src="@/assets/farm.jpg" height="170px" />
+                <v-skeleton-loader
+                  v-if="farm.imageLoading"
+                  type="image"
+                  max-height="170px"
+                />
+                <v-img v-else :src="farm.imageLoaded" height="170px" />
                 <!-- FIXME: -->
                 <v-card-text
                   class="pb-2"
@@ -65,7 +70,7 @@
                 >
                   <v-fab-transition>
                     <div
-                      v-if="showActions"
+                      v-show="showActions"
                       style="position: absolute; top: 180px; right: 10px; z-index: 1;"
                     >
                       <v-icon>info_outline</v-icon>
@@ -97,7 +102,7 @@
     </v-content>
 
     <v-bottom-sheet v-model="dialogInfo">
-      <v-sheet height="220" style="position: relative;">
+      <v-sheet height="230" style="position: relative;">
         <v-icon
           size="50"
           style="position: absolute; top: 10px; left: 10px; opacity: .5;"
@@ -152,14 +157,16 @@
           <v-simple-table dense>
             <template v-slot:default>
               <tbody>
-                <tr v-for="(val, key, index) in selectedFarm" :key="index">
-                  <td>
-                    <small class="font-weight-light text--secondary">
-                      {{ labels[key] }}
-                    </small>
-                  </td>
-                  <td>{{ val }}</td>
-                </tr>
+                <template v-for="(val, key, index) in selectedFarm">
+                  <tr v-if="key !== 'image'" :key="index">
+                    <td>
+                      <small class="font-weight-light text--secondary">
+                        {{ labels[key] }}
+                      </small>
+                    </td>
+                    <td>{{ val }}</td>
+                  </tr>
+                </template>
               </tbody>
             </template>
           </v-simple-table>
@@ -267,6 +274,7 @@
 
 <script>
 import ServiceApi from "@/services/ServiceApi";
+// const defaultImage = require("@/assets/farm.jpg");
 
 export default {
   name: "App",
@@ -279,13 +287,15 @@ export default {
     loading: false,
     farms: [],
     selectedFarm: {
+      id: null,
+      image: "",
       name: null,
       owner: null,
       address: null,
       lat: null,
       long: null,
-      createdAt: null,
-      updatedAt: null
+      created_at: null,
+      updated_at: null
     },
     form: {
       image: null,
@@ -312,8 +322,8 @@ export default {
       address: "Address",
       lat: "Latitude",
       long: "Longitude",
-      createdAt: "Created at",
-      updatedAt: "Updated at"
+      created_at: "Created at",
+      updated_at: "Updated at"
     }
   }),
   watch: {
@@ -336,13 +346,14 @@ export default {
     showDialog({ dialog, action, farm }) {
       if (farm) {
         this.selectedFarm.id = farm.id;
+        this.selectedFarm.image = farm.image;
         this.selectedFarm.name = farm.name;
         this.selectedFarm.owner = farm.owner;
         this.selectedFarm.address = farm.address;
         this.selectedFarm.lat = farm.lat;
         this.selectedFarm.long = farm.long;
-        this.selectedFarm.createdAt = farm.createdAt || farm.created_at;
-        this.selectedFarm.updatedAt = farm.updatedAt || farm.updated_at;
+        this.selectedFarm.created_at = farm.created_at;
+        this.selectedFarm.updated_at = farm.updated_at;
       }
       if (action) {
         this.dialogFormAction = action;
@@ -378,11 +389,15 @@ export default {
 
     resetForm() {
       this.form.image = null;
+      this.selectedFarm.id = null;
+      this.selectedFarm.image = null;
       this.selectedFarm.name = null;
       this.selectedFarm.owner = null;
       this.selectedFarm.address = null;
       this.selectedFarm.lat = null;
       this.selectedFarm.long = null;
+      this.selectedFarm.created_at = null;
+      this.selectedFarm.updated_at = null;
       this.$refs.form && this.$refs.form.resetValidation();
     },
 
@@ -390,12 +405,20 @@ export default {
       try {
         this.loading = true;
         const { data } = await ServiceApi.index();
-        this.farms = data;
+        this.farms = data.map(i => {
+          i.imageLoaded = "";
+          i.imageLoading = true;
+          return i;
+        });
         console.log("index", JSON.stringify(data));
       } catch (error) {
         console.log("error", error);
       } finally {
         this.loading = true;
+        this.farms.forEach(i => {
+          if (!i.image) return;
+          this.apiShowImage({ id: i.id });
+        });
       }
     },
 
@@ -435,6 +458,24 @@ export default {
       } finally {
         this.form.loading = false;
         this.apiIndex();
+      }
+    },
+
+    async apiShowImage({ id }) {
+      const farm = this.farms.find(f => f.id === id);
+      try {
+        farm.imageLoading = true;
+        const { data } = await ServiceApi.showImage({ id });
+        const fr = new FileReader();
+        fr.onload = () => {
+          farm.imageLoaded = fr.result || "";
+        };
+        fr.readAsDataURL(data);
+        console.log("showImage", id);
+      } catch (error) {
+        console.log("error", error);
+      } finally {
+        farm.imageLoading = false;
       }
     }
   }
