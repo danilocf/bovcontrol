@@ -88,32 +88,95 @@
     </v-content>
 
     <v-bottom-sheet v-model="sheet">
-      <v-sheet class="text-center" height="200px">
-        <v-btn class="mt-6" text color="red" @click="sheet = !sheet"
-          >close</v-btn
+      <v-sheet height="220" style="position: relative;">
+        <v-icon
+          size="50"
+          @click="sheet = !sheet"
+          style="position: absolute; top: 10px; left: 10px; opacity: .5;"
+          >info_outline
+        </v-icon>
+        <div style="position: absolute; top: 10px; right: 10px;">
+          <v-btn
+            depressed
+            small
+            width="100"
+            color="primary white--text mb-2"
+            @click="sheet = !sheet"
+            >Close<v-icon right color="white">close</v-icon></v-btn
+          >
+        </div>
+        <div
+          v-show="bottomNav === 'Settings'"
+          style="position: absolute; bottom: 10px; right: 10px;"
         >
-        <!-- FIXME: -->
-        <div class="py-3">
-          <p class="mb-0">
-            <small class="font-weight-light text--secondary">Address</small>
-            {{ farms[0].address }}
-          </p>
-          <p class="mb-0">
-            <small
-              class="d-inline-flex align-center font-weight-light mr-1 mb-0"
-              style="font-size: .8rem"
-            >
-              <v-icon small class="mr-1">schedule</v-icon>
-              {{ farms[0].createdAt }}
-            </small>
-            <small
-              class="d-inline-flex align-center font-weight-light mr-1 mb-0"
-              style="font-size: .8rem"
-            >
-              <v-icon small class="mr-1">history</v-icon>
-              {{ farms[0].updatedAt }}
-            </small>
-          </p>
+          <v-btn depressed small width="100" color="warning white--text mb-2"
+            >Edit<v-icon right color="white">edit</v-icon></v-btn
+          ><br />
+          <v-btn depressed small width="100" color="error white--text"
+            >Delete<v-icon right color="white">delete</v-icon></v-btn
+          >
+        </div>
+        <div class="py-5 ma-auto" style="max-width: 70vw">
+          <v-simple-table dense>
+            <template v-slot:default>
+              <tbody>
+                <tr>
+                  <td>
+                    <small class="font-weight-light text--secondary"
+                      >Name</small
+                    >
+                  </td>
+                  <td>{{ farms[0].name }}</td>
+                </tr>
+                <tr>
+                  <td>
+                    <small class="font-weight-light text--secondary"
+                      >Owner</small
+                    >
+                  </td>
+                  <td>{{ farms[0].owner }}</td>
+                </tr>
+                <tr>
+                  <td>
+                    <small class="font-weight-light text--secondary"
+                      >Address</small
+                    >
+                  </td>
+                  <td>{{ farms[0].address }}</td>
+                </tr>
+                <tr>
+                  <td>
+                    <small class="font-weight-light text--secondary">Lat</small>
+                  </td>
+                  <td>{{ farms[0].lat }}</td>
+                </tr>
+                <tr>
+                  <td>
+                    <small class="font-weight-light text--secondary"
+                      >Long</small
+                    >
+                  </td>
+                  <td>{{ farms[0].long }}</td>
+                </tr>
+                <tr>
+                  <td>
+                    <small class="font-weight-light text--secondary"
+                      >Created at</small
+                    >
+                  </td>
+                  <td>{{ farms[0].createdAt }}</td>
+                </tr>
+                <tr>
+                  <td>
+                    <small class="font-weight-light text--secondary"
+                      >Updated at</small
+                    >
+                  </td>
+                  <td>{{ farms[0].updatedAt }}</td>
+                </tr>
+              </tbody>
+            </template>
+          </v-simple-table>
         </div>
       </v-sheet>
     </v-bottom-sheet>
