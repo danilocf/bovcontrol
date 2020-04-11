@@ -327,7 +327,11 @@
             <template v-if="dialogFormAction === 'add'">Submit</template>
             <template v-else-if="dialogFormAction === 'edit'">Save</template>
             <template v-else-if="dialogFormAction === 'delete'">
-              {{ dialogFormDeleting ? "Click again to confirm" : "Delete" }}
+              {{
+                dialogFormDeleteConfirmation
+                  ? "Click again to confirm"
+                  : "Delete"
+              }}
             </template>
           </v-btn>
         </v-card-actions>
@@ -349,17 +353,17 @@ import ServiceApi from "@/services/ServiceApi";
 export default {
   name: "App",
   data: () => ({
+    loading: false,
     menu: "View",
     dialogInfo: false,
     dialogForm: false,
     dialogFormAction: null,
-    dialogFormDeleting: false,
+    dialogFormDeleteConfirmation: false,
     snackbar: {
       show: false,
       timeout: 3000,
       text: null
     },
-    loading: false,
     farms: [],
     selectedFarm: {
       id: null,
@@ -373,9 +377,9 @@ export default {
       updated_at: null
     },
     form: {
-      image: null,
       loading: false,
-      loadingImage: null,
+      loadingImage: false,
+      image: null,
       valid: false,
       basicRule: [
         v => !!v || "This field is required",
@@ -411,7 +415,7 @@ export default {
   watch: {
     dialogForm(v) {
       if (!v) {
-        this.dialogFormDeleting = false;
+        this.dialogFormDeleteConfirmation = false;
         this.resetForm();
       }
     }
@@ -452,10 +456,6 @@ export default {
       this.snackbar.text = text;
     },
 
-    onDelete() {
-      this.dialogDelete = false;
-    },
-
     async onSubmit() {
       const valid = this.$refs.form.validate();
       if (valid) {
@@ -464,8 +464,8 @@ export default {
         } else if (this.dialogFormAction === "edit") {
           await this.apiUpdate();
         } else if (this.dialogFormAction === "delete") {
-          if (!this.dialogFormDeleting) {
-            this.dialogFormDeleting = true;
+          if (!this.dialogFormDeleteConfirmation) {
+            this.dialogFormDeleteConfirmation = true;
             return;
           }
           await this.apiDestroy();
@@ -475,9 +475,9 @@ export default {
     },
 
     resetForm() {
-      this.form.image = null;
+      this.form.image = "";
       this.selectedFarm.id = null;
-      this.selectedFarm.image = null;
+      this.selectedFarm.image = "";
       this.selectedFarm.name = null;
       this.selectedFarm.owner = null;
       this.selectedFarm.address = null;
@@ -514,8 +514,9 @@ export default {
     },
 
     async apiShowImage({ id }) {
-      const farm = this.farms.find(f => f.id === id);
+      let farm;
       try {
+        farm = this.farms.find(f => f.id === id);
         farm.imageLoading = true;
         const { data } = await ServiceApi.showImage({ id });
         const fr = new FileReader();
@@ -540,6 +541,7 @@ export default {
         await this.apiUpload(data.id);
       } catch (error) {
         console.log("error", error);
+        this.showSnackbar({ text: "Error during store! Try again later" });
       } finally {
         this.form.loading = false;
         this.apiIndex();
@@ -555,6 +557,7 @@ export default {
         await this.apiUpload(data.id);
       } catch (error) {
         console.log("error", error);
+        this.showSnackbar({ text: "Error during update! Try again later" });
       } finally {
         this.form.loading = false;
         this.apiIndex();
@@ -575,6 +578,7 @@ export default {
         this.showSnackbar({ text: "Success! Image uploaded" });
       } catch (error) {
         console.log("error", error);
+        this.showSnackbar({ text: "Error during upload! Try again later" });
       } finally {
         this.form.loadingImage = false;
       }
@@ -588,6 +592,7 @@ export default {
         this.showSnackbar({ text: "Success! Farm deleted" });
       } catch (error) {
         console.log("error", error);
+        this.showSnackbar({ text: "Error during destroy! Try again later" });
       } finally {
         this.form.loading = false;
         this.apiIndex();
