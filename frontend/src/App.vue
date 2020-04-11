@@ -26,10 +26,42 @@
                 outlined
                 class="font-weight-medium mb-4 mx-2"
                 width="250px"
-                @click="sheet = true"
               >
-                <v-img src="@/assets/farm.jpg" />
-                <v-card-text class="pb-2">
+                <!-- FIXME: -->
+                <v-fab-transition>
+                  <div
+                    v-show="bottomNav === 'Settings'"
+                    style="position: absolute; top: -10px; right: -10px; z-index: 1;"
+                  >
+                    <v-btn
+                      color="warning"
+                      fab
+                      x-small
+                      class="mr-2"
+                      @click.prevent="alert('edit')"
+                    >
+                      <v-icon>edit</v-icon>
+                    </v-btn>
+                    <v-btn color="error" fab x-small>
+                      <v-icon>delete</v-icon>
+                    </v-btn>
+                  </div>
+                </v-fab-transition>
+                <v-img src="@/assets/farm.jpg" height="170px" />
+                <!-- FIXME: -->
+                <v-card-text
+                  class="pb-2"
+                  @click="sheet = true"
+                  style="cursor: pointer;"
+                >
+                  <v-fab-transition>
+                    <div
+                      v-if="bottomNav === 'Settings'"
+                      style="position: absolute; top: 180px; right: 10px; z-index: 1;"
+                    >
+                      <v-icon>info_outline</v-icon>
+                    </div>
+                  </v-fab-transition>
                   <h3 class="black--text mb-1">
                     {{ farm.name }}
                   </h3>
@@ -95,6 +127,7 @@
         fab
         fixed
         right
+        large
         @click="dialog = !dialog"
       >
         <v-icon>add</v-icon>
@@ -125,6 +158,28 @@ export default {
     sheet: false,
     dialog: false,
     farms: [
+      {
+        name: "Freire's Farm",
+        owner: "Danilo Freire",
+        address:
+          "Rua Doutor Tertuliano Delphim Júnior, São José dos Campos - SP",
+        lat: "40.689060",
+        long: "74.044636",
+        createdAt: "04-10-2020 3:56 PM",
+        updatedAt: "04-10-2020 3:56 PM",
+        showTime: false
+      },
+      {
+        name: "Freire's Farm",
+        owner: "Danilo Freire",
+        address:
+          "Rua Doutor Tertuliano Delphim Júnior, São José dos Campos - SP",
+        lat: "40.689060",
+        long: "74.044636",
+        createdAt: "04-10-2020 3:56 PM",
+        updatedAt: "04-10-2020 3:56 PM",
+        showTime: false
+      },
       {
         name: "Freire's Farm",
         owner: "Danilo Freire",
