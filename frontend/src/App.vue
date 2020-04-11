@@ -1,9 +1,6 @@
 <template>
   <v-app>
-    <img
-      src="@/assets/logo.svg"
-      style="position: fixed; top: 0; left: 44px; z-index: 1000;"
-    />
+    <img src="@/assets/logo.svg" class="Logo" />
 
     <v-bottom-navigation v-model="menu" app dark shift mandatory>
       <v-btn value="View">
@@ -19,7 +16,7 @@
     <v-content>
       <v-container fluid class="py-0">
         <v-row>
-          <v-col cols="5" class="pa-0">
+          <v-col cols="12" md="5" class="pa-0 d-none d-md-block">
             <l-map
               style="height: calc(100vh - 56px); z-index: 0;"
               :zoom="map.zoom"
@@ -33,12 +30,11 @@
               />
             </l-map>
           </v-col>
-          <v-col cols="7">
+          <v-col cols="12" md="7">
             <div class="d-flex flex-wrap">
               <div
                 v-if="loading"
-                class="d-flex justify-center align-center"
-                style="width: 100%; height: calc(100vh - 100px);"
+                class="Loading d-flex justify-center align-center"
               >
                 <v-progress-circular
                   :size="50"
@@ -67,14 +63,10 @@
                   v-for="(farm, index) in farms"
                   :key="index"
                   outlined
-                  class="font-weight-medium mb-4 mx-2"
-                  width="250px"
+                  class="Card font-weight-medium mb-4 mx-2"
                 >
                   <v-fab-transition>
-                    <div
-                      v-show="showActions"
-                      style="position: absolute; top: -10px; right: -10px; z-index: 100;"
-                    >
+                    <div v-show="showActions" class="Card__actions">
                       <v-btn
                         color="warning"
                         fab
@@ -105,15 +97,11 @@
                   />
                   <v-img v-else :src="farm.imageLoaded" height="170px" />
                   <v-card-text
-                    class="pb-2"
+                    class="Card__content pb-2"
                     @click="showDialog({ dialog: 'info', farm })"
-                    style="cursor: pointer;"
                   >
                     <v-fab-transition>
-                      <div
-                        v-show="showActions"
-                        style="position: absolute; top: 180px; right: 10px; z-index: 1;"
-                      >
+                      <div v-show="showActions" class="Card__icon-info">
                         <v-icon>info_outline</v-icon>
                       </div>
                     </v-fab-transition>
@@ -127,8 +115,7 @@
                       {{ farm.owner }}
                     </p>
                     <small
-                      class="d-inline-flex align-center text--secondary mb-0"
-                      style="font-size: .8rem"
+                      class="Card__coordinates d-inline-flex align-center text--secondary mb-0"
                     >
                       <v-icon small>room</v-icon>
                       +{{ farm.lat }} -{{ farm.long }}
@@ -143,14 +130,11 @@
     </v-content>
 
     <v-bottom-sheet v-model="dialogInfo">
-      <v-sheet height="230" style="position: relative;">
-        <v-icon
-          size="50"
-          style="position: absolute; top: 10px; left: 10px; opacity: .5;"
-        >
+      <v-sheet class="Sheet">
+        <v-icon size="50" class="Sheet__icon-info">
           info_outline
         </v-icon>
-        <div style="position: absolute; top: 10px; right: 10px;">
+        <div class="Sheet__btns-wrapper-top">
           <v-btn
             depressed
             small
@@ -160,10 +144,7 @@
             >Close<v-icon right color="white">close</v-icon></v-btn
           >
         </div>
-        <div
-          v-show="showActions"
-          style="position: absolute; bottom: 10px; right: 10px;"
-        >
+        <div v-show="showActions" class="Sheet__btns-wrapper-bottom">
           <v-btn
             depressed
             small
@@ -194,7 +175,7 @@
             <v-icon right color="white">delete</v-icon>
           </v-btn>
         </div>
-        <div class="py-5 ma-auto" style="max-width: 70vw">
+        <div class="Sheet__container py-5 py-md-0 ma-auto">
           <v-simple-table dense>
             <template v-slot:default>
               <tbody>
@@ -255,6 +236,7 @@
                   ? form.editImageRule
                   : form.imageRule
               "
+              dense
             ></v-file-input>
             <v-text-field
               v-model="selectedFarm.name"
@@ -266,6 +248,7 @@
                   form.imageLoading
               "
               required
+              dense
             />
             <v-text-field
               v-model="selectedFarm.owner"
@@ -277,6 +260,7 @@
                   form.imageLoading
               "
               required
+              dense
             />
             <v-text-field
               v-model="selectedFarm.address"
@@ -288,6 +272,7 @@
                   form.imageLoading
               "
               required
+              dense
             />
             <v-text-field
               v-model="selectedFarm.lat"
@@ -299,6 +284,7 @@
                   form.imageLoading
               "
               required
+              dense
             />
             <v-text-field
               v-model="selectedFarm.long"
@@ -310,6 +296,7 @@
                   form.imageLoading
               "
               required
+              dense
             />
           </v-form>
         </v-container>
@@ -367,7 +354,7 @@ export default {
     farms: [],
     selectedFarm: {
       id: null,
-      image: "",
+      image: {},
       name: null,
       owner: null,
       address: null,
@@ -475,9 +462,9 @@ export default {
     },
 
     resetForm() {
-      this.form.image = "";
+      this.form.image = {};
       this.selectedFarm.id = null;
-      this.selectedFarm.image = "";
+      this.selectedFarm.image = {};
       this.selectedFarm.name = null;
       this.selectedFarm.owner = null;
       this.selectedFarm.address = null;
@@ -601,3 +588,100 @@ export default {
   }
 };
 </script>
+
+<style lang="scss">
+.Logo {
+  position: fixed;
+  top: 0;
+  left: 44px;
+  z-index: 1000;
+
+  @media screen and (max-width: 960px) {
+    position: initial;
+    margin: auto;
+    z-index: 0;
+  }
+}
+
+// .Map {
+//   height: calc(100vh - 56px);
+//   z-index: 0;
+// }
+
+.Loading {
+  width: 100%;
+  height: calc(100vh - 100px);
+}
+
+.Card {
+  width: 250px;
+
+  @media screen and (max-width: 600px) {
+    overflow: hidden;
+    width: 100%;
+  }
+}
+
+.Card__actions {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  z-index: 100;
+
+  @media screen and (max-width: 600px) {
+    top: 10px;
+    right: 10px;
+  }
+}
+
+.Card__content {
+  cursor: pointer;
+}
+
+.Card__icon-info {
+  position: absolute;
+  top: 180px;
+  right: 10px;
+  z-index: 1;
+}
+
+.Card__coordinates {
+  font-size: 0.8rem;
+}
+
+.Sheet {
+  height: 280px;
+  position: relative;
+
+  @media screen and (max-width: 960px) {
+    height: 75vh;
+  }
+}
+
+.Sheet__icon-info {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  opacity: 0.5;
+}
+
+.Sheet__btns-wrapper-top {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+
+.Sheet__btns-wrapper-bottom {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+}
+
+.Sheet__container {
+  max-width: 70vw;
+
+  @media screen and (max-width: 960px) {
+    max-width: 100%;
+  }
+}
+</style>
