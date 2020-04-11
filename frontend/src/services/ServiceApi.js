@@ -15,7 +15,10 @@ const makeRequest = ({
   const useMock = process.env.VUE_APP_MOCK === "true";
   const selectedApi = useMock && mockResponse ? MockApi : NormalApi;
   const mockMethods = {
-    post: "onPost"
+    get: "onGet",
+    post: "onPost",
+    put: "onPut",
+    delete: "onDelete"
   };
   if (mockResponse) {
     const mockMethod = mockMethods[apiMethod];
@@ -25,6 +28,24 @@ const makeRequest = ({
 };
 
 export default {
+  index() {
+    return makeRequest({
+      url: `/farms`,
+      apiMethod: "get",
+      apiPayload: {},
+      mockResponse: Mock.index
+    });
+  },
+
+  show({ id = null }) {
+    return makeRequest({
+      url: `/farms/${id}`,
+      apiMethod: "get",
+      apiPayload: {},
+      mockResponse: Mock.show
+    });
+  },
+
   store({
     name = null,
     owner = null,
@@ -43,6 +64,55 @@ export default {
         long
       },
       mockResponse: Mock.store
+    });
+  },
+
+  update({
+    id = null,
+    name = null,
+    owner = null,
+    address = null,
+    lat = null,
+    long = null
+  }) {
+    return makeRequest({
+      url: `/farms/${id}`,
+      apiMethod: "put",
+      apiPayload: {
+        name,
+        owner,
+        address,
+        lat,
+        long
+      },
+      mockResponse: Mock.update
+    });
+  },
+
+  destroy({ id = null }) {
+    return makeRequest({
+      url: `/farms/${id}`,
+      apiMethod: "delete",
+      apiPayload: {},
+      mockResponse: Mock.destroy
+    });
+  },
+
+  upload({ id = null, formData }) {
+    return makeRequest({
+      url: `/farms/${id}/image`,
+      apiMethod: "post",
+      apiPayload: formData,
+      mockResponse: Mock.destroy
+    });
+  },
+
+  showImage({ id = null }) {
+    return makeRequest({
+      url: `/farms/${id}/image`,
+      apiMethod: "get",
+      apiPayload: {},
+      mockResponse: Mock.destroy
     });
   }
 };
