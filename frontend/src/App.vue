@@ -194,13 +194,19 @@
         </v-card-title>
         <v-container>
           <v-form ref="form" v-model="form.valid" lazy-validation>
+            <v-file-input
+              v-model="form.image"
+              accept="image/*"
+              show-size
+              label="Image"
+              :rules="form.imageRule"
+            ></v-file-input>
             <v-text-field
               v-model="selectedFarm.name"
               :rules="form.basicRule"
               :label="labels['name']"
               :disabled="dialogFormAction === 'delete' || form.loading"
               required
-              dense
             />
             <v-text-field
               v-model="selectedFarm.owner"
@@ -208,7 +214,6 @@
               :label="labels['owner']"
               :disabled="dialogFormAction === 'delete' || form.loading"
               required
-              dense
             />
             <v-text-field
               v-model="selectedFarm.address"
@@ -216,7 +221,6 @@
               :label="labels['address']"
               :disabled="dialogFormAction === 'delete' || form.loading"
               required
-              dense
             />
             <v-text-field
               v-model="selectedFarm.lat"
@@ -224,7 +228,6 @@
               :label="labels['lat']"
               :disabled="dialogFormAction === 'delete' || form.loading"
               required
-              dense
             />
             <v-text-field
               v-model="selectedFarm.long"
@@ -232,7 +235,6 @@
               :label="labels['long']"
               :disabled="dialogFormAction === 'delete' || form.loading"
               required
-              dense
             />
           </v-form>
         </v-container>
@@ -288,6 +290,7 @@ export default {
       updatedAt: null
     },
     form: {
+      image: null,
       loading: false,
       valid: false,
       basicRule: [
@@ -295,6 +298,10 @@ export default {
         v =>
           (v && v.length <= 240) ||
           "This field must be less than 240 characters"
+      ],
+      imageRule: [
+        v => !!v || "This field is required",
+        v => !v || v.size < 2000000 || "Image size should be less than 2 MB!"
       ]
     },
     labels: {
