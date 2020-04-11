@@ -195,6 +195,7 @@
         <v-container>
           <v-form ref="form" v-model="form.valid" lazy-validation>
             <v-file-input
+              v-if="dialogFormAction !== 'delete'"
               v-model="form.image"
               accept="image/*"
               show-size
@@ -275,18 +276,8 @@ export default {
     dialogForm: false,
     dialogFormAction: null,
     dialogFormDeleting: false,
-    farms: [
-      {
-        name: "Freire's Farm",
-        owner: "Danilo Freire",
-        address:
-          "Rua Doutor Tertuliano Delphim Júnior, São José dos Campos - SP",
-        lat: "40.689060",
-        long: "74.044636",
-        createdAt: "04-10-2020 3:56 PM",
-        updatedAt: "04-10-2020 3:56 PM"
-      }
-    ],
+    loading: false,
+    farms: [],
     selectedFarm: {
       name: null,
       owner: null,
@@ -315,6 +306,7 @@ export default {
       ]
     },
     labels: {
+      id: "ID",
       name: "Name",
       owner: "Owner",
       address: "Address",
@@ -338,18 +330,19 @@ export default {
     }
   },
   mounted() {
-    //
+    this.apiIndex();
   },
   methods: {
     showDialog({ dialog, action, farm }) {
       if (farm) {
+        this.selectedFarm.id = farm.id;
         this.selectedFarm.name = farm.name;
         this.selectedFarm.owner = farm.owner;
         this.selectedFarm.address = farm.address;
         this.selectedFarm.lat = farm.lat;
         this.selectedFarm.long = farm.long;
-        this.selectedFarm.createdAt = farm.createdAt;
-        this.selectedFarm.updatedAt = farm.updatedAt;
+        this.selectedFarm.createdAt = farm.createdAt || farm.created_at;
+        this.selectedFarm.updatedAt = farm.updatedAt || farm.updated_at;
       }
       if (action) {
         this.dialogFormAction = action;
@@ -365,25 +358,19 @@ export default {
       this.dialogDelete = false;
     },
 
-    async onSubmit() {
+    onSubmit() {
       const valid = this.$refs.form.validate();
       if (valid) {
-        if (this.dialogFormAction === "delete") {
+        if (this.dialogFormAction === "add") {
+          this.apiStore();
+        } else if (this.dialogFormAction === "edit") {
+          this.apiUpdate();
+        } else if (this.dialogFormAction === "delete") {
           if (!this.dialogFormDeleting) {
             this.dialogFormDeleting = true;
             return;
           }
-        }
-        if (this.dialogFormAction === "add") {
-          try {
-            this.form.loading = true
-            const { data } = await ServiceApi.store({ ...this.selectedFarm });
-            console.log("data", JSON.stringify(data));
-          } catch (error) {
-            console.log("error", error);
-          } finally {
-            this.form.loading = true
-          }
+          this.apiDestroy();
         }
         this.dialogForm = false;
       }
@@ -397,6 +384,58 @@ export default {
       this.selectedFarm.lat = null;
       this.selectedFarm.long = null;
       this.$refs.form && this.$refs.form.resetValidation();
+    },
+
+    async apiIndex() {
+      try {
+        this.loading = true;
+        const { data } = await ServiceApi.index();
+        this.farms = data;
+        console.log("index", JSON.stringify(data));
+      } catch (error) {
+        console.log("error", error);
+      } finally {
+        this.loading = true;
+      }
+    },
+
+    async apiStore() {
+      try {
+        this.form.loading = true;
+        const { data } = await ServiceApi.store({ ...this.selectedFarm });
+        console.log("store", JSON.stringify(data));
+      } catch (error) {
+        console.log("error", error);
+      } finally {
+        this.form.loading = false;
+        this.apiIndex();
+      }
+    },
+
+    async apiUpdate() {
+      try {
+        this.form.loading = true;
+        const { data } = await ServiceApi.update({ ...this.selectedFarm });
+        console.log("update", JSON.stringify(data));
+      } catch (error) {
+        console.log("error", error);
+      } finally {
+        this.form.loading = false;
+        this.apiIndex();
+      }
+    },
+
+    async apiDestroy() {
+      try {
+        this.form.loading = true;
+        const { data } = await ServiceApi.destroy({ id: this.selectedFarm.id });
+        console.log("destroy", JSON.stringify(data));
+      } catch (error) {
+        console.log("error", error);
+      } finally {
+        this.form.loading = false;
+        this.apiIndex();
+      }
     }
   }
 };
