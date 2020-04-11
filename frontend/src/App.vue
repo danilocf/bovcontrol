@@ -38,7 +38,9 @@
                       fab
                       x-small
                       class="mr-2"
-                      @click="showDialogForm('edit', farm)"
+                      @click="
+                        showDialog({ dialog: 'form', action: 'edit', farm })
+                      "
                     >
                       <v-icon>edit</v-icon>
                     </v-btn>
@@ -46,7 +48,9 @@
                       color="error"
                       fab
                       x-small
-                      @click="showDialogDelete(farm)"
+                      @click="
+                        showDialog({ dialog: 'form', action: 'delete', farm })
+                      "
                     >
                       <v-icon>delete</v-icon>
                     </v-btn>
@@ -56,7 +60,7 @@
                 <!-- FIXME: -->
                 <v-card-text
                   class="pb-2"
-                  @click="showDialogInfo(farm)"
+                  @click="showDialog({ dialog: 'info', farm })"
                   style="cursor: pointer;"
                 >
                   <v-fab-transition>
@@ -97,7 +101,8 @@
         <v-icon
           size="50"
           style="position: absolute; top: 10px; left: 10px; opacity: .5;"
-          >info_outline
+        >
+          info_outline
         </v-icon>
         <div style="position: absolute; top: 10px; right: 10px;">
           <v-btn
@@ -118,17 +123,30 @@
             small
             width="100"
             color="warning white--text mb-2"
-            @click="showDialogForm('edit', selectedFarm)"
-            >Edit<v-icon right color="white">edit</v-icon></v-btn
-          ><br />
+            @click="
+              showDialog({ dialog: 'form', action: 'edit', farm: selectedFarm })
+            "
+          >
+            Edit
+            <v-icon right color="white">edit</v-icon>
+          </v-btn>
+          <br />
           <v-btn
             depressed
             small
             width="100"
             color="error white--text"
-            @click="showDialogDelete(selectedFarm)"
-            >Delete<v-icon right color="white">delete</v-icon></v-btn
+            @click="
+              showDialog({
+                dialog: 'form',
+                action: 'delete',
+                farm: selectedFarm
+              })
+            "
           >
+            Delete
+            <v-icon right color="white">delete</v-icon>
+          </v-btn>
         </div>
         <div class="py-5 ma-auto" style="max-width: 70vw">
           <v-simple-table dense>
@@ -159,7 +177,7 @@
         fixed
         right
         large
-        @click="showDialogForm('add')"
+        @click="showDialog({ dialog: 'form', action: 'add' })"
       >
         <v-icon>add</v-icon>
       </v-btn>
@@ -168,47 +186,51 @@
     <v-dialog v-model="dialogForm" width="400px">
       <v-card>
         <v-card-title>
-          {{ dialogFormAction === "add" ? "Add new Farm" : "Edit Farm" }}
+          <template v-if="dialogFormAction === 'add'">Add new Farm</template>
+          <template v-else-if="dialogFormAction === 'edit'">Edit Farm</template>
+          <template v-else-if="dialogFormAction === 'delete'">
+            Delete Farm
+          </template>
         </v-card-title>
         <v-container>
           <v-form ref="form" v-model="form.valid" lazy-validation>
             <v-text-field
-              v-model="form.name"
+              v-model="selectedFarm.name"
               :rules="form.basicRule"
               :label="labels['name']"
-              :disabled="form.loading"
+              :disabled="dialogFormAction === 'delete' || form.loading"
               required
               dense
             />
             <v-text-field
-              v-model="form.owner"
+              v-model="selectedFarm.owner"
               :rules="form.basicRule"
               :label="labels['owner']"
-              :disabled="form.loading"
+              :disabled="dialogFormAction === 'delete' || form.loading"
               required
               dense
             />
             <v-text-field
-              v-model="form.address"
+              v-model="selectedFarm.address"
               :rules="form.basicRule"
               :label="labels['address']"
-              :disabled="form.loading"
+              :disabled="dialogFormAction === 'delete' || form.loading"
               required
               dense
             />
             <v-text-field
-              v-model="form.lat"
+              v-model="selectedFarm.lat"
               :rules="form.basicRule"
               :label="labels['lat']"
-              :disabled="form.loading"
+              :disabled="dialogFormAction === 'delete' || form.loading"
               required
               dense
             />
             <v-text-field
-              v-model="form.long"
+              v-model="selectedFarm.long"
               :rules="form.basicRule"
               :label="labels['long']"
-              :disabled="form.loading"
+              :disabled="dialogFormAction === 'delete' || form.loading"
               required
               dense
             />
@@ -217,26 +239,17 @@
         <v-card-actions>
           <v-spacer />
           <v-btn text @click="dialogForm = false">Cancel</v-btn>
-          <v-btn color="primary" depressed @click="onSubmit">{{
-            dialogFormAction === "add" ? "Add Farm" : "Save"
-          }}</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-
-    <v-dialog v-model="dialogDelete" width="400px">
-      <v-card>
-        <v-card-title>
-          Delete farm
-        </v-card-title>
-        <v-container>todo...</v-container>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn text color="primary" @click="dialogDelete = false">
-            Cancel
-          </v-btn>
-          <v-btn outlined color="error" @click="onDelete">
-            {{ dialogDeleteConfirming ? "Click again to confirm" : "Delete" }}
+          <v-btn
+            :outlined="dialogFormAction === 'delete'"
+            :color="dialogFormAction === 'delete' ? 'error' : 'primary'"
+            depressed
+            @click="onSubmit"
+          >
+            <template v-if="dialogFormAction === 'add'">Submit</template>
+            <template v-else-if="dialogFormAction === 'edit'">Save</template>
+            <template v-else-if="dialogFormAction === 'delete'">
+              {{ dialogFormDeleting ? "Click again to confirm" : "Delete" }}
+            </template>
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -252,8 +265,7 @@ export default {
     dialogInfo: false,
     dialogForm: false,
     dialogFormAction: null,
-    dialogDelete: false,
-    dialogDeleteConfirming: false,
+    dialogFormDeleting: false,
     farms: [
       {
         name: "Freire's Farm",
@@ -276,11 +288,6 @@ export default {
       updatedAt: null
     },
     form: {
-      name: null,
-      owner: null,
-      address: null,
-      lat: null,
-      long: null,
       loading: false,
       valid: false,
       basicRule: [
@@ -301,11 +308,11 @@ export default {
     }
   }),
   watch: {
-    dialogDelete() {
-      this.dialogDeleteConfirming = false;
-    },
-    dialogForm() {
-      this.resetForm();
+    dialogForm(v) {
+      if (!v) {
+        this.dialogFormDeleting = false;
+        this.resetForm();
+      }
     }
   },
   computed: {
@@ -317,51 +324,49 @@ export default {
     //
   },
   methods: {
-    showDialogInfo(farm) {
-      this.selectedFarm = farm;
-      this.dialogInfo = true;
-    },
-
-    showDialogDelete(farm) {
-      this.selectedFarm = farm;
-      this.dialogDelete = true;
-    },
-
-    showDialogForm(action, farm) {
-      this.dialogForm = true;
-      this.dialogFormAction = action;
-      this.$nextTick(() => {
-        if (farm) {
-          this.form.name = farm.name;
-          this.form.owner = farm.owner;
-          this.form.address = farm.address;
-          this.form.lat = farm.lat;
-          this.form.long = farm.long;
+    showDialog({ dialog, action, farm }) {
+      if (farm) {
+        this.selectedFarm.name = farm.name;
+        this.selectedFarm.owner = farm.owner;
+        this.selectedFarm.address = farm.address;
+        this.selectedFarm.lat = farm.lat;
+        this.selectedFarm.long = farm.long;
+        this.selectedFarm.createdAt = farm.createdAt;
+        this.selectedFarm.updatedAt = farm.updatedAt;
+      }
+      if (action) {
+        this.dialogFormAction = action;
+        if (action === "add") {
+          this.resetForm();
         }
-      });
+      }
+      this.dialogInfo = dialog === "info";
+      this.dialogForm = dialog === "form";
     },
 
     onDelete() {
-      if (!this.dialogDeleteConfirming) {
-        this.dialogDeleteConfirming = true;
-        return;
-      }
       this.dialogDelete = false;
     },
 
     onSubmit() {
       const valid = this.$refs.form.validate();
       if (valid) {
+        if (this.dialogFormAction === "delete") {
+          if (!this.dialogFormDeleting) {
+            this.dialogFormDeleting = true;
+            return;
+          }
+        }
         this.dialogForm = false;
       }
     },
 
     resetForm() {
-      this.form.name = null;
-      this.form.owner = null;
-      this.form.address = null;
-      this.form.lat = null;
-      this.form.long = null;
+      this.selectedFarm.name = null;
+      this.selectedFarm.owner = null;
+      this.selectedFarm.address = null;
+      this.selectedFarm.lat = null;
+      this.selectedFarm.long = null;
       this.$refs.form && this.$refs.form.resetValidation();
     }
   }
