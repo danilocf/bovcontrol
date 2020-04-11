@@ -31,7 +31,7 @@
                 <v-fab-transition>
                   <div
                     v-show="showActions"
-                    style="position: absolute; top: -10px; right: -10px; z-index: 1;"
+                    style="position: absolute; top: -10px; right: -10px; z-index: 100;"
                   >
                     <v-btn
                       color="warning"
@@ -204,6 +204,8 @@
             <v-file-input
               v-if="dialogFormAction !== 'delete'"
               v-model="form.image"
+              :loading="form.imageLoading"
+              :disabled="form.loading || form.imageLoading"
               accept="image/*"
               show-size
               label="Image"
@@ -217,35 +219,55 @@
               v-model="selectedFarm.name"
               :rules="form.basicRule"
               :label="labels['name']"
-              :disabled="dialogFormAction === 'delete' || form.loading"
+              :disabled="
+                dialogFormAction === 'delete' ||
+                  form.loading ||
+                  form.imageLoading
+              "
               required
             />
             <v-text-field
               v-model="selectedFarm.owner"
               :rules="form.basicRule"
               :label="labels['owner']"
-              :disabled="dialogFormAction === 'delete' || form.loading"
+              :disabled="
+                dialogFormAction === 'delete' ||
+                  form.loading ||
+                  form.imageLoading
+              "
               required
             />
             <v-text-field
               v-model="selectedFarm.address"
               :rules="form.basicRule"
               :label="labels['address']"
-              :disabled="dialogFormAction === 'delete' || form.loading"
+              :disabled="
+                dialogFormAction === 'delete' ||
+                  form.loading ||
+                  form.imageLoading
+              "
               required
             />
             <v-text-field
               v-model="selectedFarm.lat"
               :rules="form.basicRule"
               :label="labels['lat']"
-              :disabled="dialogFormAction === 'delete' || form.loading"
+              :disabled="
+                dialogFormAction === 'delete' ||
+                  form.loading ||
+                  form.imageLoading
+              "
               required
             />
             <v-text-field
               v-model="selectedFarm.long"
               :rules="form.basicRule"
               :label="labels['long']"
-              :disabled="dialogFormAction === 'delete' || form.loading"
+              :disabled="
+                dialogFormAction === 'delete' ||
+                  form.loading ||
+                  form.imageLoading
+              "
               required
             />
           </v-form>
@@ -256,7 +278,8 @@
           <v-btn
             :outlined="dialogFormAction === 'delete'"
             :color="dialogFormAction === 'delete' ? 'error' : 'primary'"
-            :loading="form.loading"
+            :loading="form.loading || form.imageLoading"
+            :disabled="form.loading || form.imageLoading"
             depressed
             @click="onSubmit"
           >
@@ -300,6 +323,7 @@ export default {
     form: {
       image: null,
       loading: false,
+      loadingImage: null,
       valid: false,
       basicRule: [
         v => !!v || "This field is required",
@@ -369,19 +393,21 @@ export default {
       this.dialogDelete = false;
     },
 
-    onSubmit() {
+    async onSubmit() {
       const valid = this.$refs.form.validate();
       if (valid) {
         if (this.dialogFormAction === "add") {
-          this.apiStore();
+          await this.apiUpload();
+          await this.apiStore();
         } else if (this.dialogFormAction === "edit") {
-          this.apiUpdate();
+          await this.apiUpload();
+          await this.apiUpdate();
         } else if (this.dialogFormAction === "delete") {
           if (!this.dialogFormDeleting) {
             this.dialogFormDeleting = true;
             return;
           }
-          this.apiDestroy();
+          await this.apiDestroy();
         }
         this.dialogForm = false;
       }
@@ -422,6 +448,24 @@ export default {
       }
     },
 
+    async apiShowImage({ id }) {
+      const farm = this.farms.find(f => f.id === id);
+      try {
+        farm.imageLoading = true;
+        const { data } = await ServiceApi.showImage({ id });
+        const fr = new FileReader();
+        fr.onload = () => {
+          farm.imageLoaded = fr.result || "";
+        };
+        fr.readAsDataURL(data);
+        console.log("showImage", id);
+      } catch (error) {
+        console.log("error", error);
+      } finally {
+        farm.imageLoading = false;
+      }
+    },
+
     async apiStore() {
       try {
         this.form.loading = true;
@@ -448,6 +492,24 @@ export default {
       }
     },
 
+    async apiUpload() {
+      if (!this.form.image) return;
+      try {
+        this.form.loadingImage = true;
+        const formData = new FormData();
+        formData.append("image", this.form.image);
+        const { data } = await ServiceApi.upload({
+          id: this.selectedFarm.id,
+          formData
+        });
+        console.log("upload", JSON.stringify(data));
+      } catch (error) {
+        console.log("error", error);
+      } finally {
+        this.form.loadingImage = false;
+      }
+    },
+
     async apiDestroy() {
       try {
         this.form.loading = true;
@@ -458,24 +520,6 @@ export default {
       } finally {
         this.form.loading = false;
         this.apiIndex();
-      }
-    },
-
-    async apiShowImage({ id }) {
-      const farm = this.farms.find(f => f.id === id);
-      try {
-        farm.imageLoading = true;
-        const { data } = await ServiceApi.showImage({ id });
-        const fr = new FileReader();
-        fr.onload = () => {
-          farm.imageLoaded = fr.result || "";
-        };
-        fr.readAsDataURL(data);
-        console.log("showImage", id);
-      } catch (error) {
-        console.log("error", error);
-      } finally {
-        farm.imageLoading = false;
       }
     }
   }

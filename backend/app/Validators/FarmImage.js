@@ -7,7 +7,7 @@ class FarmImage {
   
   get rules () {
     return {
-      image: 'file|file_ext:png,jpg|file_size:2mb|file_types:image'
+      image: 'file|file_ext:png,jpg,jpeg,JPG|file_size:2mb|file_types:image'
     }
   }
   
