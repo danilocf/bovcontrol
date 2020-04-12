@@ -12,7 +12,6 @@
   @media screen and (max-width: 960px) {
     position: initial;
     margin: auto;
-    z-index: 0;
   }
 }
 </style>

@@ -95,7 +95,7 @@ export default {
   position: absolute;
   top: -10px;
   right: -10px;
-  z-index: 100;
+  z-index: 10;
 
   @media screen and (max-width: 600px) {
     top: 10px;

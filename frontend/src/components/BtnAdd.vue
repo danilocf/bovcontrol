@@ -9,6 +9,8 @@
       fixed
       right
       large
+      id="add"
+      class="BtnAdd"
       @click="$emit('showDialog', { dialog: 'form', action: 'add' })"
     >
       <v-icon>add</v-icon>
@@ -27,3 +29,9 @@ export default {
   }
 };
 </script>
+
+<style lang="scss">
+.BtnAdd {
+  z-index: 101;
+}
+</style>

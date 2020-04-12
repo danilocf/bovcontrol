@@ -6,6 +6,7 @@
     dark
     shift
     mandatory
+    class="Menu"
   >
     <v-btn value="View">
       <span>View</span>
@@ -28,3 +29,9 @@ export default {
   }
 };
 </script>
+
+<style lang="scss">
+.Menu {
+  z-index: 100;
+}
+</style>

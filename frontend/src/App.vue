@@ -10,8 +10,8 @@
           <v-col cols="12" md="5" class="pa-0 d-none d-md-block">
             <Map :markers="mapMarkers" />
           </v-col>
-          <v-col cols="12" md="7">
-            <div class="d-flex flex-wrap">
+          <v-col cols="12" md="7" class="pa-0">
+            <div class="d-flex flex-wrap py-4 px-2 FormContainer">
               <Loading v-if="loading" />
               <AlertNoFarm v-else-if="!farms.length" @showDialog="showDialog" />
               <template v-else>
@@ -61,18 +61,18 @@
               :disabled="form.loading || form.imageLoading"
               accept="image/*"
               show-size
-              label="Image"
-              :rules="
-                dialogFormAction === 'edit'
-                  ? form.editImageRule
-                  : form.imageRule
-              "
+              :label="labels['image']"
+              :id="labels['image']"
+              :rules="form.imageRule"
               dense
+              hint="Optional"
+              persistent-hint
             ></v-file-input>
             <v-text-field
               v-model="selectedFarm.name"
               :rules="form.basicRule"
               :label="labels['name']"
+              :id="labels['name']"
               :disabled="
                 dialogFormAction === 'delete' ||
                   form.loading ||
@@ -85,6 +85,7 @@
               v-model="selectedFarm.owner"
               :rules="form.basicRule"
               :label="labels['owner']"
+              :id="labels['owner']"
               :disabled="
                 dialogFormAction === 'delete' ||
                   form.loading ||
@@ -97,6 +98,7 @@
               v-model="selectedFarm.address"
               :rules="form.basicRule"
               :label="labels['address']"
+              :id="labels['address']"
               :disabled="
                 dialogFormAction === 'delete' ||
                   form.loading ||
@@ -109,6 +111,7 @@
               v-model="selectedFarm.lat"
               :rules="form.basicRule"
               :label="labels['lat']"
+              :id="labels['lat']"
               :disabled="
                 dialogFormAction === 'delete' ||
                   form.loading ||
@@ -121,6 +124,7 @@
               v-model="selectedFarm.long"
               :rules="form.basicRule"
               :label="labels['long']"
+              :id="labels['long']"
               :disabled="
                 dialogFormAction === 'delete' ||
                   form.loading ||
@@ -224,16 +228,11 @@ export default {
           (v && v.length <= 240) ||
           "This field must be less than 240 characters"
       ],
-      editImageRule: [
-        v => !v || v.size < 2000000 || "Image size should be less than 2 MB!"
-      ],
-      imageRule: [
-        v => !!v || "This field is required",
-        v => !v || v.size < 2000000 || "Image size should be less than 2 MB!"
-      ]
+      imageRule: []
     },
     labels: {
       id: "ID",
+      image: "Image",
       name: "Name",
       owner: "Owner",
       address: "Address",
@@ -397,7 +396,7 @@ export default {
     },
 
     async apiUpload(id) {
-      if (!this.form.image) return;
+      if (!this.form.image || !this.form.image.length) return;
       try {
         this.form.loadingImage = true;
         const formData = new FormData();
@@ -433,3 +432,14 @@ export default {
   }
 };
 </script>
+
+<style lang="scss">
+.FormContainer {
+  height: calc(100vh - 56px);
+  overflow: auto;
+
+  @media screen and (max-width: 960px) {
+    height: initial;
+  }
+}
+</style>
