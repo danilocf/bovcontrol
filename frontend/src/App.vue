@@ -1,127 +1,28 @@
 <template>
   <v-app>
-    <img src="@/assets/logo.svg" class="Logo" />
+    <Logo />
 
-    <v-bottom-navigation v-model="menu" app dark shift mandatory>
-      <v-btn value="View">
-        <span>View</span>
-        <v-icon>visibility</v-icon>
-      </v-btn>
-      <v-btn value="Settings">
-        <span>Settings</span>
-        <v-icon>settings</v-icon>
-      </v-btn>
-    </v-bottom-navigation>
+    <Menu v-model="menu" />
 
     <v-content>
       <v-container fluid class="py-0">
         <v-row>
           <v-col cols="12" md="5" class="pa-0 d-none d-md-block">
-            <l-map
-              style="height: calc(100vh - 56px); z-index: 0;"
-              :zoom="map.zoom"
-              :center="map.center"
-            >
-              <l-tile-layer :url="map.url" />
-              <l-marker
-                v-for="(mark, index) in map.markers"
-                :key="index"
-                :lat-lng="mark"
-              />
-            </l-map>
+            <Map :markers="mapMarkers" />
           </v-col>
           <v-col cols="12" md="7">
             <div class="d-flex flex-wrap">
-              <div
-                v-if="loading"
-                class="Loading d-flex justify-center align-center"
-              >
-                <v-progress-circular
-                  :size="50"
-                  width="5"
-                  color="primary"
-                  indeterminate
-                />
-              </div>
-              <v-alert
-                v-else-if="!farms.length"
-                border="left"
-                outlined
-                block
-                type="warning"
-                width="100%"
-              >
-                No farm added yet.
-                <a
-                  class="orange--text"
-                  @click="showDialog({ dialog: 'form', action: 'add' })"
-                  ><b>Click here to add.</b></a
-                >
-              </v-alert>
+              <Loading v-if="loading" />
+              <AlertNoFarm v-else-if="!farms.length" @showDialog="showDialog" />
               <template v-else>
-                <v-card
+                <CardFarm
                   v-for="(farm, index) in farms"
                   :key="index"
-                  outlined
-                  class="Card font-weight-medium mb-4 mx-2"
-                >
-                  <v-fab-transition>
-                    <div v-show="showActions" class="Card__actions">
-                      <v-btn
-                        color="warning"
-                        fab
-                        x-small
-                        class="mr-2"
-                        @click="
-                          showDialog({ dialog: 'form', action: 'edit', farm })
-                        "
-                      >
-                        <v-icon>edit</v-icon>
-                      </v-btn>
-                      <v-btn
-                        color="error"
-                        fab
-                        x-small
-                        @click="
-                          showDialog({ dialog: 'form', action: 'delete', farm })
-                        "
-                      >
-                        <v-icon>delete</v-icon>
-                      </v-btn>
-                    </div>
-                  </v-fab-transition>
-                  <v-skeleton-loader
-                    v-if="farm.imageLoading"
-                    type="image"
-                    max-height="170px"
-                  />
-                  <v-img v-else :src="farm.imageLoaded" height="170px" />
-                  <v-card-text
-                    class="Card__content pb-2"
-                    @click="showDialog({ dialog: 'info', farm })"
-                  >
-                    <v-fab-transition>
-                      <div v-show="showActions" class="Card__icon-info">
-                        <v-icon>info_outline</v-icon>
-                      </div>
-                    </v-fab-transition>
-                    <h3 class="black--text mb-1">
-                      {{ farm.name }}
-                    </h3>
-                    <p class="mb-2">
-                      <small class="font-weight-light text--secondary">
-                        {{ labels["owner"] }}
-                      </small>
-                      {{ farm.owner }}
-                    </p>
-                    <small
-                      class="Card__coordinates d-inline-flex align-center text--secondary mb-0"
-                    >
-                      <v-icon small>room</v-icon>
-                      +{{ farm.lat }} -{{ farm.long }}
-                    </small>
-                  </v-card-text>
-                </v-card>
+                  :farm="farm"
+                  :labels="labels"
+                  :showActions="showActions"
+                  @showDialog="showDialog"
+                />
               </template>
             </div>
           </v-col>
@@ -130,88 +31,18 @@
     </v-content>
 
     <v-bottom-sheet v-model="dialogInfo">
-      <v-sheet class="Sheet">
-        <v-icon size="50" class="Sheet__icon-info">
-          info_outline
-        </v-icon>
-        <div class="Sheet__btns-wrapper-top">
-          <v-btn
-            depressed
-            small
-            width="100"
-            color="primary white--text mb-2"
-            @click="dialogInfo = false"
-            >Close<v-icon right color="white">close</v-icon></v-btn
-          >
-        </div>
-        <div v-show="showActions" class="Sheet__btns-wrapper-bottom">
-          <v-btn
-            depressed
-            small
-            width="100"
-            color="warning white--text mb-2"
-            @click="
-              showDialog({ dialog: 'form', action: 'edit', farm: selectedFarm })
-            "
-          >
-            Edit
-            <v-icon right color="white">edit</v-icon>
-          </v-btn>
-          <br />
-          <v-btn
-            depressed
-            small
-            width="100"
-            color="error white--text"
-            @click="
-              showDialog({
-                dialog: 'form',
-                action: 'delete',
-                farm: selectedFarm
-              })
-            "
-          >
-            Delete
-            <v-icon right color="white">delete</v-icon>
-          </v-btn>
-        </div>
-        <div class="Sheet__container py-5 py-md-0 ma-auto">
-          <v-simple-table dense>
-            <template v-slot:default>
-              <tbody>
-                <template v-for="(val, key, index) in selectedFarm">
-                  <tr v-if="key !== 'image'" :key="index">
-                    <td>
-                      <small class="font-weight-light text--secondary">
-                        {{ labels[key] }}
-                      </small>
-                    </td>
-                    <td>{{ val }}</td>
-                  </tr>
-                </template>
-              </tbody>
-            </template>
-          </v-simple-table>
-        </div>
-      </v-sheet>
+      <SheetFarm
+        :selectedFarm="selectedFarm"
+        :labels="labels"
+        :showActions="showActions"
+        @showDialog="showDialog"
+        @close="dialogInfo = false"
+      />
     </v-bottom-sheet>
 
-    <v-fab-transition>
-      <v-btn
-        v-show="showActions"
-        bottom
-        color="primary"
-        dark
-        fab
-        fixed
-        right
-        large
-        @click="showDialog({ dialog: 'form', action: 'add' })"
-      >
-        <v-icon>add</v-icon>
-      </v-btn>
-    </v-fab-transition>
+    <BtnAdd :showActions="showActions" @showDialog="showDialog" />
 
+    <!-- TODO: isolate in a component -->
     <v-dialog v-model="dialogForm" width="400px">
       <v-card>
         <v-card-title>
@@ -325,6 +156,7 @@
       </v-card>
     </v-dialog>
 
+    <!-- TODO: isolate in a component -->
     <v-snackbar v-model="snackbar.show" :timeout="snackbar.timeout" top>
       {{ snackbar.text }}
       <v-btn color="blue" text @click="snackbar.show = false">
@@ -335,10 +167,28 @@
 </template>
 
 <script>
+import Logo from "@/components/Logo";
+import Menu from "@/components/Menu";
+import Map from "@/components/Map";
+import Loading from "@/components/Loading";
+import AlertNoFarm from "@/components/AlertNoFarm";
+import CardFarm from "@/components/CardFarm";
+import SheetFarm from "@/components/SheetFarm";
+import BtnAdd from "@/components/BtnAdd";
 import ServiceApi from "@/services/ServiceApi";
 
 export default {
   name: "App",
+  components: {
+    Logo,
+    Menu,
+    Map,
+    Loading,
+    AlertNoFarm,
+    CardFarm,
+    SheetFarm,
+    BtnAdd
+  },
   data: () => ({
     loading: false,
     menu: "View",
@@ -392,12 +242,7 @@ export default {
       created_at: "Created at",
       updated_at: "Updated at"
     },
-    map: {
-      url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-      zoom: 3,
-      center: [10.223945, -80.442116],
-      markers: []
-    }
+    mapMarkers: []
   }),
   watch: {
     dialogForm(v) {
@@ -478,12 +323,12 @@ export default {
     async apiIndex() {
       try {
         this.loading = true;
-        this.map.markers = [];
+        this.mapMarkers = [];
         const { data } = await ServiceApi.index();
         this.farms = data.map(i => {
           i.imageLoaded = "";
           i.imageLoading = true;
-          this.map.markers.push([i.lat, i.long]);
+          this.mapMarkers.push([i.lat, i.long]);
           return i;
         });
         console.log("index", JSON.stringify(data));
@@ -588,100 +433,3 @@ export default {
   }
 };
 </script>
-
-<style lang="scss">
-.Logo {
-  position: fixed;
-  top: 0;
-  left: 44px;
-  z-index: 1000;
-
-  @media screen and (max-width: 960px) {
-    position: initial;
-    margin: auto;
-    z-index: 0;
-  }
-}
-
-// .Map {
-//   height: calc(100vh - 56px);
-//   z-index: 0;
-// }
-
-.Loading {
-  width: 100%;
-  height: calc(100vh - 100px);
-}
-
-.Card {
-  width: 250px;
-
-  @media screen and (max-width: 600px) {
-    overflow: hidden;
-    width: 100%;
-  }
-}
-
-.Card__actions {
-  position: absolute;
-  top: -10px;
-  right: -10px;
-  z-index: 100;
-
-  @media screen and (max-width: 600px) {
-    top: 10px;
-    right: 10px;
-  }
-}
-
-.Card__content {
-  cursor: pointer;
-}
-
-.Card__icon-info {
-  position: absolute;
-  top: 180px;
-  right: 10px;
-  z-index: 1;
-}
-
-.Card__coordinates {
-  font-size: 0.8rem;
-}
-
-.Sheet {
-  height: 280px;
-  position: relative;
-
-  @media screen and (max-width: 960px) {
-    height: 75vh;
-  }
-}
-
-.Sheet__icon-info {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  opacity: 0.5;
-}
-
-.Sheet__btns-wrapper-top {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-}
-
-.Sheet__btns-wrapper-bottom {
-  position: absolute;
-  bottom: 10px;
-  right: 10px;
-}
-
-.Sheet__container {
-  max-width: 70vw;
-
-  @media screen and (max-width: 960px) {
-    max-width: 100%;
-  }
-}
-</style>
