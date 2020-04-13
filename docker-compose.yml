@@ -1,0 +1,38 @@
+version: "3.7"
+
+services:
+  backend:
+    # restart: always
+    image: backend
+    container_name: backend
+    build: 
+      context: ./backend
+    depends_on:
+      - postgres
+    environment:
+      NODE_ENV: development
+      PORT: 3333
+      DB_CONNECTION: pg
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: user
+      DB_PASSWORD: pass
+      DB_DATABASE: db
+    ports:
+      - "3333:3333"
+
+  postgres:
+    image: postgres
+    container_name: postgres
+    image: postgres:alpine
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: db
+
+  # frontend:
+  #   container_name: frontend
+  #   build:
+  #     context: ./frontend
+  #   ports:
+  #     - '80:80'
