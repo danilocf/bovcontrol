@@ -396,7 +396,6 @@ export default {
     },
 
     async apiUpload(id) {
-      if (!this.form.image || !this.form.image.length) return;
       try {
         this.form.loadingImage = true;
         const formData = new FormData();
@@ -406,10 +405,10 @@ export default {
           formData
         });
         console.log("upload", JSON.stringify(data));
-        this.showSnackbar({ text: "Success! Image uploaded" });
+        // this.showSnackbar({ text: "Success! Image uploaded" });
       } catch (error) {
         console.log("error", error);
-        this.showSnackbar({ text: "Error during upload! Try again later" });
+        // this.showSnackbar({ text: "Error during upload! Try again later" });
       } finally {
         this.form.loadingImage = false;
       }
