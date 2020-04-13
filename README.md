@@ -2,7 +2,7 @@
 
 ## Project setup
 ```
-docker-compose up --build
+docker-compose up
 ```
 
 ### Backend will run on
