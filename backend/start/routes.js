@@ -16,6 +16,8 @@
 /** @type {typeof import('@adonisjs/framework/src/Route/Manager')} */
 const Route = use('Route')
 
+Route.get('/', () => '')
+
 Route
   .resource('farms', 'FarmController')
   .apiOnly()

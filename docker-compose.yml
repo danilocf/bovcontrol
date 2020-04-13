@@ -2,7 +2,6 @@ version: "3.7"
 
 services:
   backend:
-    image: backend
     container_name: backend
     build: 
       context: ./backend
@@ -27,16 +26,14 @@ services:
       - "3333:3333"
 
   postgres:
-    image: postgres
-    container_name: postgres
     image: postgres:alpine
+    container_name: postgres
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: pass
       POSTGRES_DB: db
 
   frontend:
-    image: frontend
     container_name: frontend
     build:
       context: ./frontend

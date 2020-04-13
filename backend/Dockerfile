@@ -1,8 +1,11 @@
+FROM node:alpine as build
+WORKDIR /app
+COPY . .
+RUN npm install --production
+CMD ["node", "ace", "migration:run", "--force"]
+
 FROM node:alpine
 WORKDIR /app
-COPY ./package*.json ./
-RUN npm install --production
-COPY . .
+COPY --from=build /app .
 EXPOSE 3333
-CMD ["node", "ace", "migration:run", "--force"]
 CMD ["npm", "run", "start"]
