@@ -10,7 +10,7 @@ services:
     depends_on:
       - postgres
     environment:
-      NODE_ENV: development
+      NODE_ENV: production
       PORT: 3333
       DB_CONNECTION: pg
       DB_HOST: postgres
