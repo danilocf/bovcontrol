@@ -1,14 +1,11 @@
 FROM node:alpine as build
-USER node
-WORKDIR /home/node
-COPY ./package.json .
-COPY ./package-lock.json .
-RUN npm install --production --no-progress
+WORKDIR /app
+COPY ./package*.json ./
+RUN npm install
 COPY . .
-# ENTRYPOINT [  ]
-CMD [ "npm", "run", "build" ]
+RUN npm run build
 
-FROM nginx:latest
+FROM nginx:alpine
 COPY --from=build /app/dist /usr/share/nginx/html
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]

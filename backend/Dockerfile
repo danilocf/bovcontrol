@@ -1,10 +1,8 @@
 FROM node:alpine
-USER node
-WORKDIR /home/node
-COPY ./package.json .
-COPY ./package-lock.json .
-RUN npm install --production --no-progress
+WORKDIR /app
+COPY ./package*.json ./
+RUN npm install --production
 COPY . .
-ENTRYPOINT [ "npm", "run" ]
-CMD [ "start" ]
 EXPOSE 3333
+CMD ["node", "ace", "migration:run", "--force"]
+CMD ["npm", "run", "start"]

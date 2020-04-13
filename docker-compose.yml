@@ -2,7 +2,6 @@ version: "3.7"
 
 services:
   backend:
-    # restart: always
     image: backend
     container_name: backend
     build: 
@@ -10,14 +9,20 @@ services:
     depends_on:
       - postgres
     environment:
-      NODE_ENV: production
+      HOST: 0.0.0.0
       PORT: 3333
+      NODE_ENV: production
+      APP_NAME: AdonisJs
+      APP_URL: http://${HOST}:${PORT}
+      APP_KEY: 2uhLYRemq1zM3qIBx2qcnIRSVyTSTcc2
+      CACHE_VIEWS: 'false'
       DB_CONNECTION: pg
       DB_HOST: postgres
       DB_PORT: 5432
       DB_USER: user
       DB_PASSWORD: pass
       DB_DATABASE: db
+      HASH_DRIVER: bcrypt
     ports:
       - "3333:3333"
 
@@ -30,9 +35,13 @@ services:
       POSTGRES_PASSWORD: pass
       POSTGRES_DB: db
 
-  # frontend:
-  #   container_name: frontend
-  #   build:
-  #     context: ./frontend
-  #   ports:
-  #     - '80:80'
+  frontend:
+    image: frontend
+    container_name: frontend
+    build:
+      context: ./frontend
+    environment:
+      VUE_APP_MOCK: 'false'
+      VUE_APP_API_URL: 'http://0.0.0.0:3333'
+    ports:
+      - '8080:80'

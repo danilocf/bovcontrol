@@ -435,7 +435,7 @@ export default {
 
 <style lang="scss">
 .FormContainer {
-  height: calc(100vh - 56px);
+  max-height: calc(100vh - 56px);
   overflow: auto;
 
   @media screen and (max-width: 960px) {
