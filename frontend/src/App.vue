@@ -195,7 +195,7 @@ export default {
   },
   data: () => ({
     loading: false,
-    menu: "View",
+    menu: "Settings",
     dialogInfo: false,
     dialogForm: false,
     dialogFormAction: null,

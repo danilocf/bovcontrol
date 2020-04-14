@@ -55,7 +55,7 @@
         class="Card__coordinates d-inline-flex align-center text--secondary mb-0"
       >
         <v-icon small>room</v-icon>
-        +{{ farm.lat }} -{{ farm.long }}
+        {{ farm.lat }} {{ farm.long }}
       </small>
     </v-card-text>
   </v-card>
